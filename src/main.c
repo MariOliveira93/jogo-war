@@ -4,19 +4,23 @@
  * Arquivo principal do programa de cadastro e batalhas de territórios do jogo War.
  *
  * Este programa permite:
- * - Alocação dinâmica de territórios
- * - Cadastro de territórios com suas respectivas informações
+ * - Alocação dinâmica de territórios e jogadores
+ * - Cadastro de territórios e jogadores com suas respectivas informações
+ * - Sistema de missões estratégicas com sorteio aleatório
  * - Simulação de ataques entre territórios
- * - Atualização dinâmica dos dados após batalhas
+ * - Verificação automática de vitória por cumprimento de missão
  *
  * Autor: [Seu Nome]
  * Data: [Data Atual]
- * Versão: 2.0 - Fase Aventureiro
+ * Versão: 3.0 - Fase Mestre
  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "../include/territorio.h"
+#include "../include/jogador.h"
+#include "../include/missao.h"
 #include "../include/utils.h"
 
 /*
@@ -27,10 +31,13 @@
  * Parâmetros:
  *   - territorios: ponteiro para o array de territórios
  *   - quantidade: número de territórios disponíveis
+ *   - jogadores: ponteiro para o array de jogadores
+ *   - quantidadeJogadores: número de jogadores
  *
- * Retorno: void
+ * Retorno: índice do jogador vencedor ou -1 se ninguém venceu
  */
-void realizarAtaque(Territorio *territorios, int quantidade) {
+int realizarAtaque(Territorio *territorios, int quantidade,
+                   Jogador *jogadores, int quantidadeJogadores) {
     int indiceAtacante, indiceDefensor;
 
     printf("\n");
@@ -54,7 +61,7 @@ void realizarAtaque(Territorio *territorios, int quantidade) {
     if (indiceAtacante < 0 || indiceAtacante >= quantidade) {
         printf("Erro: Territorio invalido!\n");
         limparBuffer();
-        return;
+        return -1;
     }
 
     // Seleciona território defensor
@@ -66,20 +73,26 @@ void realizarAtaque(Territorio *territorios, int quantidade) {
     if (indiceDefensor < 0 || indiceDefensor >= quantidade) {
         printf("Erro: Territorio invalido!\n");
         limparBuffer();
-        return;
+        return -1;
     }
 
     // Verifica se não está atacando o mesmo território
     if (indiceAtacante == indiceDefensor) {
         printf("Erro: Um territorio nao pode atacar a si mesmo!\n");
         limparBuffer();
-        return;
+        return -1;
     }
 
     limparBuffer();
 
     // Realiza o ataque usando ponteiros
     atacar(&territorios[indiceAtacante], &territorios[indiceDefensor]);
+
+    // Verifica se algum jogador cumpriu sua missão após o ataque
+    int vencedor = verificarTodasMissoes(jogadores, quantidadeJogadores,
+                                         territorios, quantidade);
+
+    return vencedor;
 }
 
 /*
@@ -87,15 +100,19 @@ void realizarAtaque(Territorio *territorios, int quantidade) {
  *
  * Gerencia o fluxo de execução do programa:
  * 1. Inicializa o gerador de números aleatórios
- * 2. Aloca memória dinamicamente para os territórios
- * 3. Realiza o cadastro de todos os territórios
- * 4. Apresenta menu interativo para batalhas
- * 5. Libera a memória alocada ao finalizar
+ * 2. Aloca memória dinamicamente para territórios e jogadores
+ * 3. Realiza o cadastro de territórios e jogadores
+ * 4. Atribui missões aleatórias para cada jogador
+ * 5. Apresenta menu interativo para batalhas
+ * 6. Verifica condições de vitória após cada turno
+ * 7. Libera toda a memória alocada ao finalizar
  */
 int main(void) {
-    int quantidadeTerritórios;
+    int quantidadeTerritórios, quantidadeJogadores;
     Territorio *territorios = NULL;
+    Jogador *jogadores = NULL;
     int opcao = 0;
+    int jogoAtivo = 1;
 
     // Inicializa o gerador de números aleatórios
     inicializarAleatoriedade();
@@ -103,49 +120,114 @@ int main(void) {
     // Exibe o cabeçalho do programa
     exibirCabecalho();
 
+    // ========== CONFIGURAÇÃO DO JOGO ==========
+
+    // Solicita quantidade de jogadores
+    printf("\nQuantos jogadores participarao? ");
+    scanf("%d", &quantidadeJogadores);
+    limparBuffer();
+
+    if (quantidadeJogadores <= 0) {
+        printf("Erro: Quantidade invalida de jogadores!\n");
+        return 1;
+    }
+
+    // Aloca memória para os jogadores
+    jogadores = alocarJogadores(quantidadeJogadores);
+    if (jogadores == NULL) {
+        printf("Erro: Nao foi possivel alocar memoria para os jogadores.\n");
+        return 1;
+    }
+
+    // Cadastra os jogadores
+    printf("\n=== CADASTRO DE JOGADORES ===\n");
+    for (int i = 0; i < quantidadeJogadores; i++) {
+        cadastrarJogador(&jogadores[i], i + 1);
+    }
+
     // Solicita quantidade de territórios
     printf("\nQuantos territorios deseja cadastrar? ");
     scanf("%d", &quantidadeTerritórios);
     limparBuffer();
 
-    // Valida quantidade
     if (quantidadeTerritórios <= 0) {
-        printf("Erro: Quantidade invalida!\n");
+        printf("Erro: Quantidade invalida de territorios!\n");
+        liberarJogadores(jogadores, quantidadeJogadores);
         return 1;
     }
 
     // Aloca memória dinamicamente para os territórios
     territorios = alocarTerritorios(quantidadeTerritórios);
-
-    // Verifica se a alocação foi bem-sucedida
     if (territorios == NULL) {
         printf("Erro: Nao foi possivel alocar memoria para os territorios.\n");
+        liberarJogadores(jogadores, quantidadeJogadores);
         return 1;
     }
 
-    printf("\nMemoria alocada com sucesso para %d territorios!\n", quantidadeTerritórios);
+    printf("\nMemoria alocada com sucesso!\n");
 
-    // Laço de entrada: cadastro dos territórios usando ponteiros
+    // Cadastra os territórios
+    printf("\n=== CADASTRO DE TERRITORIOS ===\n");
     for (int i = 0; i < quantidadeTerritórios; i++) {
-        // Passa o ponteiro para cada território usando aritmética de ponteiros
         cadastrarTerritorio(territorios + i, i + 1);
     }
 
-    // Exibição inicial de todos os territórios cadastrados
+    // ========== ATRIBUIÇÃO DE MISSÕES ==========
+
+    printf("\n");
+    exibirSeparador();
+    printf("       ATRIBUINDO MISSOES ESTRATEGICAS       \n");
+    exibirSeparador();
+    printf("\n");
+
+    const char **missoes = obterMissoes();
+
+    // Atribui missões para cada jogador (passagem por referência)
+    for (int i = 0; i < quantidadeJogadores; i++) {
+        atribuirMissao(&jogadores[i], missoes, TOTAL_MISSOES);
+    }
+
+    printf("\n");
+    pausar();
+
+    // Exibe as missões de cada jogador (passagem por valor para leitura)
+    for (int i = 0; i < quantidadeJogadores; i++) {
+        exibirMissao(jogadores[i].missao, jogadores[i].nome);
+    }
+
+    pausar();
+
+    // Exibição inicial de todos os territórios
     exibirTodosTerritórios(territorios, quantidadeTerritórios);
 
-    // Loop principal do jogo
-    while (opcao != 3) {
+    // ========== LOOP PRINCIPAL DO JOGO ==========
+
+    while (opcao != 4 && jogoAtivo) {
         exibirMenu();
         scanf("%d", &opcao);
         limparBuffer();
 
         switch (opcao) {
-            case 1:
-                // Realizar ataque
-                realizarAtaque(territorios, quantidadeTerritórios);
+            case 1: {
+                // Realizar ataque e verificar vitória
+                int vencedor = realizarAtaque(territorios, quantidadeTerritórios,
+                                             jogadores, quantidadeJogadores);
+
+                if (vencedor >= 0) {
+                    printf("\n");
+                    exibirSeparador();
+                    printf("          >>> TEMOS UM VENCEDOR! <<<         \n");
+                    exibirSeparador();
+                    printf("\n");
+                    printf("Parabens, %s!\n", jogadores[vencedor].nome);
+                    printf("Voce cumpriu sua missao:\n%s\n", jogadores[vencedor].missao);
+                    exibirSeparador();
+                    jogoAtivo = 0;
+                }
+
                 pausar();
                 break;
+            }
 
             case 2:
                 // Exibir territórios
@@ -154,6 +236,12 @@ int main(void) {
                 break;
 
             case 3:
+                // Exibir jogadores e missões
+                exibirTodosJogadores(jogadores, quantidadeJogadores);
+                pausar();
+                break;
+
+            case 4:
                 // Sair
                 printf("\nEncerrando o jogo...\n");
                 break;
@@ -165,8 +253,11 @@ int main(void) {
         }
     }
 
+    // ========== LIBERAÇÃO DE MEMÓRIA ==========
+
     // Libera a memória alocada antes de encerrar
     liberarMemoria(territorios);
+    liberarJogadores(jogadores, quantidadeJogadores);
 
     printf("\nObrigado por jogar WAR!\n");
     exibirSeparador();

@@ -27,8 +27,8 @@ void limparBuffer(void) {
  */
 void exibirCabecalho(void) {
     exibirSeparador();
-    printf("     BEM-VINDO AO JOGO DE WAR - FASE 2       \n");
-    printf("      Sistema de Batalhas e Territorios      \n");
+    printf("     BEM-VINDO AO JOGO DE WAR - FASE 3       \n");
+    printf("        Missoes Estrategicas e Vitoria       \n");
     exibirSeparador();
 }
 
@@ -74,7 +74,8 @@ void exibirMenu(void) {
     exibirSeparador();
     printf("  1 - Realizar ataque\n");
     printf("  2 - Exibir territorios\n");
-    printf("  3 - Sair\n");
+    printf("  3 - Exibir jogadores e missoes\n");
+    printf("  4 - Sair\n");
     exibirSeparador();
     printf("Escolha uma opcao: ");
 }
