@@ -5,6 +5,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include "../include/utils.h"
 
 /*
@@ -25,8 +27,8 @@ void limparBuffer(void) {
  */
 void exibirCabecalho(void) {
     exibirSeparador();
-    printf("     BEM-VINDO AO JOGO DE WAR - FASE 1       \n");
-    printf("     Sistema de Cadastro de Territorios      \n");
+    printf("     BEM-VINDO AO JOGO DE WAR - FASE 2       \n");
+    printf("      Sistema de Batalhas e Territorios      \n");
     exibirSeparador();
 }
 
@@ -43,9 +45,36 @@ void exibirSeparador(void) {
  * Implementação: pausar
  *
  * Aguarda o usuário pressionar Enter para continuar.
+ * Assume que o buffer já foi limpo anteriormente.
  */
 void pausar(void) {
     printf("\nPressione ENTER para continuar...");
-    limparBuffer();
     getchar();
+}
+
+/*
+ * Implementação: inicializarAleatoriedade
+ *
+ * Configura a seed do gerador de números aleatórios com o tempo atual,
+ * garantindo resultados diferentes a cada execução.
+ */
+void inicializarAleatoriedade(void) {
+    srand(time(NULL));
+}
+
+/*
+ * Implementação: exibirMenu
+ *
+ * Mostra as opções disponíveis para o jogador.
+ */
+void exibirMenu(void) {
+    printf("\n");
+    exibirSeparador();
+    printf("                  MENU                       \n");
+    exibirSeparador();
+    printf("  1 - Realizar ataque\n");
+    printf("  2 - Exibir territorios\n");
+    printf("  3 - Sair\n");
+    exibirSeparador();
+    printf("Escolha uma opcao: ");
 }

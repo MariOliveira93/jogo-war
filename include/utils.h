@@ -7,9 +7,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-// Constante para o total de territórios do jogo
-#define TOTAL_TERRITORIOS 5
-
 /*
  * Função: limparBuffer
  *
@@ -45,5 +42,24 @@ void exibirSeparador(void);
  * Retorno: void
  */
 void pausar(void);
+
+/*
+ * Função: inicializarAleatoriedade
+ *
+ * Inicializa o gerador de números aleatórios usando o tempo atual.
+ * Deve ser chamada uma vez no início do programa.
+ *
+ * Retorno: void
+ */
+void inicializarAleatoriedade(void);
+
+/*
+ * Função: exibirMenu
+ *
+ * Exibe o menu principal do jogo com as opções disponíveis.
+ *
+ * Retorno: void
+ */
+void exibirMenu(void);
 
 #endif // UTILS_H
