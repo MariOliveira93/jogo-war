@@ -54,4 +54,11 @@ dkms.conf
 # debug information files
 *.dwo
 
+# IDE
 .idea/
+
+# Build directory
+build/
+
+# Projeto: executável específico do jogo War
+war
